@@ -1,6 +1,6 @@
 {
   "name": "istanbul-reporter-html-monorepo",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A monorepo-focused HTML reporter for istanbul/nyc",
   "main": "index.js",
   "scripts": {
