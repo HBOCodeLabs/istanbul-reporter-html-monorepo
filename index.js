@@ -1,3 +1,6 @@
+// Copyright (c) WarnerMedia Direct, LLC. All rights reserved. Licensed under the MIT license.
+// See the LICENSE file for license information.
+
 // Copyright 2012-2015, Yahoo Inc.
 // Copyrights licensed under the New BSD License. See the accompanying ThirdPartyNotices.txt file for terms.
 
@@ -5,7 +8,13 @@ const fs = require('fs');
 const path = require('path');
 const html = require('html-escaper');
 const { ReportBase } = require('istanbul-lib-report');
-const annotator = require('./annotator');
+const annotator = require('./lib/annotator');
+const Path = require('./lib/path');
+const { ReportNode, ReportTree, findOrCreateParent } = require('./lib/utils');
+
+// Invent a pathname that is very unlikely to be encountered in a real build.
+// (Needs to be a valid path, because we will place HTML files under this folder.)
+const DEFAULT_PLACEHOLDER = '___otherfiles___';
 
 function htmlHead(details) {
     return `
@@ -248,15 +257,91 @@ function fixPct(metrics) {
     return metrics;
 }
 
-class HtmlReport extends ReportBase {
+class HtmlMonorepoReporter extends ReportBase {
     constructor(opts) {
-        super();
+        super(opts);
 
         this.verbose = opts.verbose;
         this.linkMapper = opts.linkMapper || standardLinkMapper;
         this.subdir = opts.subdir || '';
         this.date = Date();
         this.skipEmpty = opts.skipEmpty;
+
+        // Additional options (beyond HtmlReport)
+        this.reportTitle = opts.reportTitle || 'All files';
+        this.projects = opts.projects || [];
+        this.defaultProjectName = opts.defaultProjectName === false
+            ? undefined
+            : (opts.defaultProjectName || 'Other Files');
+
+        // Basic option validation/massaging
+        this.projects.forEach(project => {
+            if (!project.name) {
+                throw new Error(`html-monorepo projects entry: missing 'name' key`);
+            }
+            if (!project.path) {
+                throw new Error(`html-monorepo projects entry: missing 'name' key`);
+            }
+            project.path = project.path.replace(/\\/g, '/').replace(/^\//, '');
+        });
+    }
+
+    // Override the behavior of ReportBase#execute, so we can insert a custom
+    // report tree method instead of one of the built-in summarizers.
+    execute(context) {
+        return this.getTree(
+            context._summarizerFactory._initialList,
+            context._summarizerFactory._commonParent,
+            this.projects,
+            this.defaultProjectName
+        ).visit(this, context);
+    }
+
+    // Our summarizer is sort of a mix of the built-in `nested` and `flat` summarizers,
+    // where we nest based on defined folder paths instead of any folder path.
+    getTree(initialList, commonParent, projects, defaultProjectName) {
+        const nodeMap = Object.create(null);
+        const topPaths = [];
+        const defaultNode = defaultProjectName ? new ReportNode(new Path(DEFAULT_PLACEHOLDER)) : undefined;
+        let defaultNodeAdded = false;
+
+        initialList.forEach(o => {
+            const node = new ReportNode(o.path, o.fileCoverage);
+            const project = projects.find(project => o.path.toString().startsWith(project.path));
+            if (project ) {
+                const parent = findOrCreateParent(
+                    new Path(project.path),
+                    nodeMap,
+                    (parentPath, parent) => {
+                        topPaths.push(parent);
+                    }
+                );
+                parent.addChild(node);
+            } else if (defaultNode) {
+                defaultNode.addChild(node);
+                if (!defaultNodeAdded) {
+                    defaultNodeAdded = true;
+                    topPaths.push(defaultNode);
+                }
+            } else {
+                topPaths.push(node);
+            }
+        });
+
+        return new ReportTree(ReportNode.createRoot(topPaths));
+    }
+
+    // Nodes that match a known path can be displayed by their project name instead
+    // of the path (in general this should be EVERY node, since our tree summarizer
+    // uses the list of projects when creating the node list).
+    getDisplayName(node) {
+        const pathString = node.path.toString();
+        if (pathString === DEFAULT_PLACEHOLDER) {
+            return this.defaultProjectName;
+        }
+
+        const project = this.projects.find(project => project.path === node.path.toString());
+        return project ? project.name : (node.getRelativeName() || this.reportTitle);
     }
 
     getBreadcrumbHtml(node) {
@@ -270,14 +355,13 @@ class HtmlReport extends ReportBase {
 
         const linkPath = nodePath.map(ancestor => {
             const target = this.linkMapper.relativePath(node, ancestor);
-            const name = ancestor.getRelativeName() || 'All files';
-            return '<a href="' + target + '">' + name + '</a>';
+            return '<a href="' + target + '">' + this.getDisplayName(ancestor) + '</a>';
         });
 
         linkPath.reverse();
         return linkPath.length > 0
-            ? linkPath.join(' / ') + ' ' + node.getRelativeName()
-            : 'All files';
+            ? linkPath.join(' / ') + ' ' + this.getDisplayName(node)
+            : this.reportTitle;
     }
 
     fillTemplate(node, templateData, context) {
@@ -386,7 +470,7 @@ class HtmlReport extends ReportBase {
             const data = {
                 metrics: isEmpty ? fixPct(metrics) : metrics,
                 reportClasses,
-                file: child.getRelativeName(),
+                file: this.getDisplayName(child),
                 output: linkMapper.relativePath(node, child)
             };
             cw.write(summaryLineTemplate(data) + '\n');
@@ -411,4 +495,4 @@ class HtmlReport extends ReportBase {
     }
 }
 
-module.exports = HtmlReport;
+module.exports = HtmlMonorepoReporter;
