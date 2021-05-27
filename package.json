@@ -15,8 +15,7 @@
     "nyc",
     "reporter"
   ],
-  "author": "HBO Code Labs, Inc.",
-  "license": "BSD-3-Clause",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/HBOCodeLabs/istanbul-reporter-html-monorepo/issues"
   },

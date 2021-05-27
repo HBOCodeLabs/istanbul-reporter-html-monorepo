@@ -1,11 +1,15 @@
 # istanbul-reporter-html-monorepo
 
-An alternate HTML reporter for istanbul/nyc, intended for multi-project monorepos.
+An alternate HTML reporter for Istanbul/nyc, intended for multi-project monorepos.
+
+[Istanbul](https://istanbul.js.org/) (and its command-line runner `nyc`) is the code coverage analyzer used by the JavaScript unit test framework [Jest](https://jestjs.io/), and is also commonly added to projects using other unit test frameworks like [Mocha](https://istanbul.js.org/docs/tutorials/mocha/).
+
+The default HTML reporter provided by Istanbul is not ideal when reporting on many projects in a large [monorepo](https://en.wikipedia.org/wiki/Monorepo). The **istanbul-reporter-html-monorepo** plugin solves this problem by creating an HTML report with a single top-level summary, and then separate summary reports for each project inside the monorepo.
 
 ## Installation
 
 ```console
-npm i -D istanbul-reporter-html-monorepo
+npm install --save-dev istanbul-reporter-html-monorepo
 ```
 
 ## Usage
@@ -59,11 +63,9 @@ async function generateMonorepoReport() {
 }
 ```
 
-For additional code examples, see the examples folder. (WIP)
-
 ## Options
 
-(In addition to the list below, the `html-monorepo` reporter accepts all the options that the standard HTML reporter does.)
+In addition to the list below, the `html-monorepo` reporter accepts all the options that the standard HTML reporter does.
 
 ### reportTitle
 
@@ -81,7 +83,7 @@ Consider this project definition:
 
 In the summary listing and breadcrumb links, files under this folder path will be displayed under `docs-site` (the project name), instead of `src/sites/docs` (the project path).
 
-In some cases you may prefer to use the project paths instead of the names, or, you like the name but want some path context as well. You can customize the `name` property to achieve the desired result.
+In some cases you may prefer to use the project paths instead of the names, or your users would like to see both the file path and the project name. You can customize the `name` property to achieve your desired result.
 
 ```js
 // Organize by project, but display only the path

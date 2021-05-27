@@ -1,3 +1,9 @@
+// Copyright (c) WarnerMedia Direct, LLC. All rights reserved. Licensed under the MIT license.
+// See the LICENSE file for license information.
+
+// Copyright 2012-2015, Yahoo Inc.
+// Copyrights licensed under the New BSD License. See the accompanying ThirdPartyNotices.txt file for terms.
+
 var jumpToCode = (function init() {
     // Classes of code we would like to highlight in the file view
     var missingCoverageClasses = ['.cbranch-no', '.cstat-no', '.fstat-no'];
