@@ -105,3 +105,13 @@ If you'd rather show these additional source files as "loose" source files in th
 
 If you want to exclude these files from the report completely, you can use nyc's built-in `--exclude` option in the appropriate project to ensure the files won't get covered. Alternately, you can doctor the combined `coverageMap` in your script and remove
 any files you wish to exclude before passing the `coverageMap` to the reporter.
+
+## Examples
+
+See the links below for more detailed examples on how to configure `html-monorepo`.
+
+ * [In a rush monorepo](./examples/rush/README.md)
+
+## Disclaimer
+
+This is a community project that provides additional functionality for istanbul/nyc tooling. It is not published by or affiliated with the creators of istanbul/nyc.
