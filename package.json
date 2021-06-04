@@ -1,0 +1,27 @@
+{
+  "name": "istanbul-reporter-html-monorepo",
+  "version": "0.1.0",
+  "description": "A monorepo-focused HTML reporter for istanbul/nyc",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HBOCodeLabs/istanbul-reporter-html-monorepo.git"
+  },
+  "keywords": [
+    "istanbul",
+    "nyc",
+    "reporter"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/HBOCodeLabs/istanbul-reporter-html-monorepo/issues"
+  },
+  "homepage": "https://github.com/HBOCodeLabs/istanbul-reporter-html-monorepo#readme",
+  "dependencies": {
+    "html-escaper": "^2.0.0",
+    "istanbul-lib-report": "^3.0.0"
+  }
+}
