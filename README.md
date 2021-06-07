@@ -112,6 +112,14 @@ See the links below for more detailed examples on how to configure `html-monorep
 
  * [In a rush monorepo](./examples/rush/README.md)
 
+## Contributing
+
+Additional improvements and bug fixes are welcome!
+
+The guts of the monorepo reporter are located in `index.js`, while the source files in `./lib` are cloned from Istanbul internal packages (`istanbul-lib-report` and `istanbul-reports`). Where possible, keep your changes to `index.js`, to avoid detangling future merge conflicts.
+
+In addition to the basic unit tests available in the `__tests__` folder, the jest configuration for this repo uses the monorepo reporter when reporting its code coverage, so any fatal breaks in the reporter will become apparent just by running `npm test`.
+
 ## Disclaimer
 
 This is a community project that provides additional functionality for istanbul/nyc tooling. It is not published by or affiliated with the creators of istanbul/nyc.
