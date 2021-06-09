@@ -6,6 +6,8 @@ An alternate HTML reporter for Istanbul/nyc, intended for multi-project monorepo
 
 The default HTML reporter provided by Istanbul is not ideal when reporting on many projects in a large [monorepo](https://en.wikipedia.org/wiki/Monorepo). The **istanbul-reporter-html-monorepo** plugin solves this problem by creating an HTML report with a single top-level summary, and then separate summary reports for each project inside the monorepo.
 
+![example screenshot](examples/rush/screenshot1.png)
+
 ## Installation
 
 ```console
