@@ -1,0 +1,2 @@
+# Ignore pre-minified assets
+assets/vendor/prettify.js
