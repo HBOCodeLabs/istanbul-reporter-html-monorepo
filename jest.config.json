@@ -2,5 +2,6 @@
     "reporters": ["default", ["jest-junit", { "outputDirectory": "temp/junit" }]],
     "collectCoverage": true,
     "coverageDirectory": "temp/coverage",
-    "coverageReporters": ["text", "json", "cobertura", "../../.."]
+    "coverageReporters": ["text", "json", "cobertura", "../../.."],
+    "restoreMocks": true
 }
