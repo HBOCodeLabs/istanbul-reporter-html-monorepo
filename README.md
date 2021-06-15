@@ -16,8 +16,43 @@ npm install --save-dev istanbul-reporter-html-monorepo
 
 ## Usage
 
-In order to produce a satisfactory output, you should not use this reporter from a command line (for example, by specifying the `-r` option for the nyc command). Instead, it's intended that you construct and execute the reporter from code, where you can
-pass in the options required.
+In order to produce a satisfactory report, you need to pass information about your project configuration to the reporter. You can do this either by writing this configuration to a JSON file that the reporter can read, or by creating the Reporter from code using the istanbul internals.
+
+### Using a configuration file
+
+To use the reporter with a configuration file, create the file `istanbul-reporter-options.json` in your project folder, like so:
+
+```json
+{
+    "reportTitle": "Acme Corp",
+    "projects": [
+        { "name": "@acme/rocket-sled", "path": "vehicles/rocket-sled" },
+        { "name": "@acme/jet-engine-core", "path": "libraries/jet-engine-core" }
+    ],
+    "defaultProjectName": "Other Files"
+}
+```
+
+Next you'll need to gather the coverage data for your projects. One way to do that would be to loop through your projects and run `nyc merge` for each one.
+
+```console
+nyc merge vehicles/rocket-sled/.nyc_output .nyc_output/rocket-sled.json
+nyc merge libraries/jet-engine-core/.nyc_output .nyc_output/jet-engine-core.json
+```
+
+Finally, you can report using the monorepo reporter, which will use the configuration file you've created.
+
+```console
+nyc report -r istanbul-reporter-html-monorepo
+```
+
+In larger monorepos, you wouldn't want to create this file by hand -- it's more likely you'll want to generate it on the fly each time from some other source of project data (a list of projects, or a glob pattern, etc.). You can override the path used to find this config file by setting the `ISTANBUL_REPORTER_CONFIG` environment variable.
+
+```console
+ISTANBUL_REPORTER_CONFIG=temp/options.json nyc report -r istanbul-reporter-html-monorepo
+```
+
+### Using from code
 
 Let's say you have a custom monorepo for `Acme Corp`, containing several subfolders with different projects. You've already run your builds and unit tests and generated JSON file coverage for each project. Here's an example of how you would generate HTML monorepo from these coverage files, using a custom script.
 
@@ -64,6 +99,8 @@ async function generateMonorepoReport() {
     htmlReport.execute(context);
 }
 ```
+
+This example also shows how you can use the istanbul internals directly to combine coverage data, instead of repeatedly calling `nyc merge`, which can offer a speed improvement for larger repos.
 
 ## Options
 
