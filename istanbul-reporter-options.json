@@ -1,0 +1,10 @@
+{
+    "reportTitle": "istanbul-reporter-html-monorepo",
+    "projects": [
+        {
+            "name": "the lib folder",
+            "path": "lib"
+        }
+    ],
+    "defaultProjectName": false
+}

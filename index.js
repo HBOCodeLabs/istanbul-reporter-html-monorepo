@@ -1,6 +1,6 @@
 // Copyright (c) WarnerMedia Direct, LLC. All rights reserved. Licensed under the MIT license.
 // See the LICENSE file for license information.
-
+//
 // Copyright 2012-2015, Yahoo Inc.
 // Copyrights licensed under the New BSD License. See the accompanying ThirdPartyNotices.txt file for terms.
 
@@ -15,6 +15,9 @@ const { ReportNode, ReportTree, findOrCreateParent } = require('./lib/utils');
 // Invent a pathname that is very unlikely to be encountered in a real build.
 // (Needs to be a valid path, because we will place HTML files under this folder.)
 const DEFAULT_PLACEHOLDER = '___otherfiles___';
+
+const CONFIG_FILE = 'istanbul-reporter-options.json';
+const CONFIG_ENV_VAR = 'ISTANBUL_REPORTER_CONFIG';
 
 function htmlHead(details) {
     return `
@@ -259,6 +262,19 @@ function fixPct(metrics) {
 
 class HtmlMonorepoReporter extends ReportBase {
     constructor(opts) {
+        let config = HtmlMonorepoReporter.loadOptionsFromConfigFile();
+        for (let key of Object.keys(config)) {
+            if ([
+                'skipEmpty',
+                'reportTitle',
+                'projects',
+                'defaultProjectName'
+            ].includes(key)) {
+                opts[key] = config[key];
+            } else {
+                console.error(`Ignoring unknown property '${key}' in istanbul reporter config file`);
+            }
+        }
         super(opts);
 
         this.verbose = opts.verbose;
@@ -280,18 +296,56 @@ class HtmlMonorepoReporter extends ReportBase {
                 throw new Error(`html-monorepo projects entry: missing 'name' key`);
             }
             if (!project.path) {
-                throw new Error(`html-monorepo projects entry: missing 'name' key`);
+                throw new Error(`html-monorepo projects entry: missing 'path' key`);
             }
             project.path = project.path.replace(/\\/g, '/').replace(/^\//, '');
         });
     }
 
+    static loadOptionsFromConfigFile() {
+        let file = process.env[CONFIG_ENV_VAR];
+        if (file) {
+            try {
+                return JSON.parse(fs.readFileSync(file, 'utf8'));
+            } catch (error) {
+                throw new Error(`Attempted to load ${file} (specified by ${CONFIG_ENV_VAR}), but it does not exist or does not contain valid JSON: ${error.message}`);
+            }
+        } else {
+            try {
+                return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+            } catch (error) {
+                if (error.code === 'ENOENT') {
+                    return {};
+                }
+                throw new Error(`Attempted to load ${CONFIG_FILE}, but it does not contain valid JSON: ${error.message}`);
+            }
+        }
+    }
+
     // Override the behavior of ReportBase#execute, so we can insert a custom
     // report tree method instead of one of the built-in summarizers.
     execute(context) {
+        const initialList = context._summarizerFactory._initialList;
+        const commonParent = context._summarizerFactory._commonParent;
+
+        // NOTE: This should not be necessary, as this normalization of the common parent
+        // already happens in the summarizer factory constructor. Unfortunately, due to a
+        // bug in istanbul-lib-report, any reporter that executes before ours that uses the
+        // 'pkg' summarizer modifies the list in place, breaking the file paths we want to
+        // display.
+        //
+        // To work around this bug, we'll make sure before continuing that all file paths
+        // are correctly normalized relative to the common parent path.
+        if (commonParent.length > 0) {
+            initialList.forEach(o => {
+                o.path = new Path(o.filePath);
+                o.path.splice(0, commonParent.length);
+            });
+        }
+
         return this.getTree(
-            context._summarizerFactory._initialList,
-            context._summarizerFactory._commonParent,
+            initialList,
+            commonParent,
             this.projects,
             this.defaultProjectName
         ).visit(this, context);
@@ -307,8 +361,8 @@ class HtmlMonorepoReporter extends ReportBase {
 
         initialList.forEach(o => {
             const node = new ReportNode(o.path, o.fileCoverage);
-            const project = projects.find(project => o.path.toString().startsWith(project.path));
-            if (project ) {
+            const project = projects.find(project => new Path(project.path).ancestorOf(o.path));
+            if (project) {
                 const parent = findOrCreateParent(
                     new Path(project.path),
                     nodeMap,

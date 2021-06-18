@@ -1,10 +1,12 @@
 {
   "name": "istanbul-reporter-html-monorepo",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A monorepo-focused HTML reporter for istanbul/nyc",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest && eslint .",
+    "lint": "eslint .",
+    "lint-fix": "eslint --fix ."
   },
   "repository": {
     "type": "git",
@@ -25,6 +27,9 @@
     "istanbul-lib-report": "^3.0.0"
   },
   "devDependencies": {
-    "jest": "^27.0.4"
+    "eslint": "^7.28.0",
+    "eslint-plugin-header": "^3.1.1",
+    "jest": "^27.0.4",
+    "jest-junit": "^12.1.0"
   }
 }

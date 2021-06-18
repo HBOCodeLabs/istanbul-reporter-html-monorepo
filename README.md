@@ -6,6 +6,8 @@ An alternate HTML reporter for Istanbul/nyc, intended for multi-project monorepo
 
 The default HTML reporter provided by Istanbul is not ideal when reporting on many projects in a large [monorepo](https://en.wikipedia.org/wiki/Monorepo). The **istanbul-reporter-html-monorepo** plugin solves this problem by creating an HTML report with a single top-level summary, and then separate summary reports for each project inside the monorepo.
 
+![example screenshot](examples/rush/screenshot1.png)
+
 ## Installation
 
 ```console
@@ -14,8 +16,43 @@ npm install --save-dev istanbul-reporter-html-monorepo
 
 ## Usage
 
-In order to produce a satisfactory output, you should not use this reporter from a command line (for example, by specifying the `-r` option for the nyc command). Instead, it's intended that you construct and execute the reporter from code, where you can
-pass in the options required.
+In order to produce a satisfactory report, you need to pass information about your project configuration to the reporter. You can do this either by writing this configuration to a JSON file that the reporter can read, or by creating the Reporter from code using the istanbul internals.
+
+### Using a configuration file
+
+To use the reporter with a configuration file, create the file `istanbul-reporter-options.json` in your project folder, like so:
+
+```json
+{
+    "reportTitle": "Acme Corp",
+    "projects": [
+        { "name": "@acme/rocket-sled", "path": "vehicles/rocket-sled" },
+        { "name": "@acme/jet-engine-core", "path": "libraries/jet-engine-core" }
+    ],
+    "defaultProjectName": "Other Files"
+}
+```
+
+Next you'll need to gather the coverage data for your projects. One way to do that would be to loop through your projects and run `nyc merge` for each one.
+
+```console
+nyc merge vehicles/rocket-sled/.nyc_output .nyc_output/rocket-sled.json
+nyc merge libraries/jet-engine-core/.nyc_output .nyc_output/jet-engine-core.json
+```
+
+Finally, you can report using the monorepo reporter, which will use the configuration file you've created.
+
+```console
+nyc report -r istanbul-reporter-html-monorepo
+```
+
+In larger monorepos, you wouldn't want to create this file by hand -- it's more likely you'll want to generate it on the fly each time from some other source of project data (a list of projects, or a glob pattern, etc.). You can override the path used to find this config file by setting the `ISTANBUL_REPORTER_CONFIG` environment variable.
+
+```console
+ISTANBUL_REPORTER_CONFIG=temp/options.json nyc report -r istanbul-reporter-html-monorepo
+```
+
+### Using from code
 
 Let's say you have a custom monorepo for `Acme Corp`, containing several subfolders with different projects. You've already run your builds and unit tests and generated JSON file coverage for each project. Here's an example of how you would generate HTML monorepo from these coverage files, using a custom script.
 
@@ -62,6 +99,8 @@ async function generateMonorepoReport() {
     htmlReport.execute(context);
 }
 ```
+
+This example also shows how you can use the istanbul internals directly to combine coverage data, instead of repeatedly calling `nyc merge`, which can offer a speed improvement for larger repos.
 
 ## Options
 
@@ -116,10 +155,11 @@ See the links below for more detailed examples on how to configure `html-monorep
 
 Additional improvements and bug fixes are welcome!
 
-The guts of the monorepo reporter are located in `index.js`, while the source files in `./lib` are cloned from Istanbul internal packages (`istanbul-lib-report` and `istanbul-reports`). Where possible, keep your changes to `index.js`, to avoid detangling future merge conflicts.
-
-In addition to the basic unit tests available in the `__tests__` folder, the jest configuration for this repo uses the monorepo reporter when reporting its code coverage, so any fatal breaks in the reporter will become apparent just by running `npm test`.
+This project includes files that were forked from the [istanbul-lib-report](istanbul-lib-report) and [istanbul-reports](istanbul-reports) packages. The original copyrights and license are preserved. New functionality for the monorepo reporter is implemented in `index.js`, and supporting files and reporting logic can be found in the `./lib` folder.
 
 ## Disclaimer
 
 This is a community project that provides additional functionality for istanbul/nyc tooling. It is not published by or affiliated with the creators of istanbul/nyc.
+
+[istanbul-lib-report]: https://github.com/istanbuljs/istanbuljs/tree/master/packages/istanbul-lib-report
+[istanbul-reports]: https://github.com/istanbuljs/istanbuljs/tree/master/packages/istanbul-reports
