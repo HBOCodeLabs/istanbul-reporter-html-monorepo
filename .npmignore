@@ -17,3 +17,6 @@
 
 # Assets
 !assets/**
+
+# Additional license details
+!ThirdPartyNotices.txt
