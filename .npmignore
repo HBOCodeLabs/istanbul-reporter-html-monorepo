@@ -15,6 +15,9 @@
 # Source
 !lib/*.js
 
+# Types
+!typings/*.d.ts
+
 # Assets
 !assets/**
 
