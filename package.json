@@ -1,6 +1,6 @@
 {
   "name": "istanbul-reporter-html-monorepo",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "A monorepo-focused HTML reporter for istanbul/nyc",
   "main": "index.js",
   "scripts": {
@@ -8,6 +8,7 @@
     "lint": "eslint .",
     "lint-fix": "eslint --fix ."
   },
+  "typings": "typings/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/HBOCodeLabs/istanbul-reporter-html-monorepo.git"
@@ -23,6 +24,7 @@
   },
   "homepage": "https://github.com/HBOCodeLabs/istanbul-reporter-html-monorepo#readme",
   "dependencies": {
+    "@types/istanbul-reports": "*",
     "html-escaper": "^2.0.0",
     "istanbul-lib-report": "^3.0.0"
   },
