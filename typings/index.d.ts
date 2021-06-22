@@ -1,11 +1,11 @@
 import { ReportOptions, HtmlOptions } from 'istanbul-reports';
 
-export interface HtmlMonorepoProject {
+export declare interface HtmlMonorepoProject {
   name: string;
   path: string;
 }
 
-export interface HtmlMonorepoOptions extends HtmlOptions {
+export declare interface HtmlMonorepoOptions extends HtmlOptions {
   reportTitle: string;
   projects: HtmlMonorepoProject[];
   defaultProjectName: string;
